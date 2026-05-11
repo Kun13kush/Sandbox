@@ -23,11 +23,16 @@ _log_cleanup() {
 get_free_port() {
   local port
   for port in $(shuf -i 10000-19999 -n 100); do
-    if ! ss -tlnp 2>/dev/null | grep -q ":${port} " && \
-       ! grep -r "\"host_port\": *${port}" "$ROOT_DIR/envs/"*.json 2>/dev/null | grep -q .; then
-      echo "$port"
-      return
+    # not in use by the OS
+    if ss -tlnp 2>/dev/null | awk '{print $4}' | grep -qE ":${port}$"; then
+      continue
     fi
+    # not claimed by another env state file
+    if grep -rl "\"host_port\": *${port}" "$ROOT_DIR/envs/" 2>/dev/null | grep -q .; then
+      continue
+    fi
+    echo "$port"
+    return
   done
   echo 1>&2 "No free port found"; exit 1
 }
@@ -43,7 +48,6 @@ reload_nginx() {
 
 # ── State helpers ─────────────────────────────────────────────────────────────
 list_envs() {
-  # Prints env IDs of all active state files
   for f in "$ROOT_DIR/envs/"*.json; do
     [[ -f "$f" ]] || continue
     jq -r '.id' "$f"

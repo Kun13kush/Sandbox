@@ -63,7 +63,7 @@ down: ## Stop everything and destroy all active environments
 	@echo "✅  Platform is DOWN"
 
 # ── Environment management ────────────────────────────────────────────────────
-create: ## Create a new environment (prompts for name + TTL)
+
 	@read -p "Environment name: " name; \
 	 read -p "TTL in seconds [1800]: " ttl; \
 	 ttl=$${ttl:-1800}; \
@@ -116,3 +116,9 @@ clean: ## Wipe all runtime state, logs, and archives (keeps code)
 	@read -p "Are you sure? [y/N] " confirm; [ "$$confirm" = "y" ] || exit 0
 	@rm -rf $(ROOT_DIR)/logs/* $(ROOT_DIR)/envs/*.json $(ROOT_DIR)/nginx/conf.d/*.conf
 	@echo "✅  Cleaned."
+
+create: ## Create a new environment  (usage: make create NAME=myapp TTL=300)
+ifndef NAME
+	$(error NAME is not set. Usage: make create NAME=myapp TTL=300)
+endif
+	bash platform/create_env.sh "$(NAME)" "$(or $(TTL),1800)"

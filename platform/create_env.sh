@@ -12,7 +12,7 @@ ENV_NAME="$1"
 TTL="${2:-1800}"   # default 30 min
 
 # ── generate unique env ID ───────────────────────────────────────────────────
-ENV_ID="env-$(tr -dc 'a-z0-9' </dev/urandom | head -c 8)"
+ENV_ID="env-$(cat /proc/sys/kernel/random/uuid | tr -d '-' | cut -c1-8)"
 NETWORK_NAME="sandbox-net-$ENV_ID"
 CONTAINER_NAME="sandbox-app-$ENV_ID"
 HOST_PORT=$(get_free_port)
